@@ -148,8 +148,13 @@ int32_t ferrum_create(ferrum_t **ferrum) {
         last_redis_resolve_time = current_time;
     }
     verbose_f("redis host resolved to %s:%d", redis_host, redis_port);
-    strcpy(tmp->redis.host, redis_host);
+    strncpy(tmp->redis.host, redis_host,sizeof(tmp->redis.host)-1);
     tmp->redis.port = redis_port;
+
+     char *redis_pass = getenv("REDIS_PASS");
+     if(redis_pass){
+        strncpy(tmp->redis.password,redis_pass,sizeof(tmp->redis.password)-1);
+     }
 
     char *login_url = getenv("LOGIN_URL");
     snprintf(tmp->login.url, FERRUM_LOGIN_URL_LEN - 1, "%s",
@@ -234,6 +239,25 @@ int32_t ferrum_redis_connect(ferrum_t *ferrum) {
             error_f("ferrum can't allocate redis context");
             return SSH_ERR_INTERNAL_ERROR;
         }
+    }
+    // if password exits, authenticate
+    if(strlen(ferrum->redis.password)){
+        redisReply *reply =
+            redisCommand(ferrum->redis.context, "auth %s", ferrum->redis.password);
+        if (reply == NULL) {  // timeout
+            error_f("ferrum authenticate redis timeout");
+            freeReplyObject(reply);
+            redisFree(ferrum->redis.context);
+            return SSH_ERR_INTERNAL_ERROR;
+        }
+        if (reply->type == REDIS_REPLY_ERROR) {
+            error_f("ferrum redis authenticate error %s", reply->str);
+            freeReplyObject(reply);
+            redisFree(ferrum->redis.context);
+            return SSH_ERR_INTERNAL_ERROR;
+        }
+        freeReplyObject(reply);
+        
     }
  
     return FERRUM_SUCCESS;

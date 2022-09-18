@@ -12,7 +12,11 @@
         "servconf.h": "c",
         "sshbuf.h": "c",
         "hiredis.h": "c",
-        "cerrno": "c"
+        "cerrno": "c",
+        "string_view": "c",
+        "*.tcc": "c",
+        "limits": "c",
+        "algorithm": "c"
     },
     "redis-console.host": "localhost",
     "redis-console.port": 6379,

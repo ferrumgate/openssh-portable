@@ -43,7 +43,7 @@ static int converse(pam_handle_t *pamh, int nargs,
 
 
 
-static redisContext *redis_connect(pam_handle_t *pamh,const char *host,int32_t port){
+static redisContext *redis_connect(pam_handle_t *pamh,const char *host,int32_t port,const char *passwd){
  struct timeval timeout = { 1, 500000 }; // 1.5 seconds
      redisContext  *context= redisConnectWithTimeout(host,port,timeout);
     if (context == NULL || context->err) {
@@ -56,6 +56,28 @@ static redisContext *redis_connect(pam_handle_t *pamh,const char *host,int32_t p
             return NULL;
         }
     }
+
+    if(passwd && strlen(passwd)){
+    // if password exits, authenticate
+    
+        redisReply *reply =
+            redisCommand(context, "auth %s", passwd);
+        if (reply == NULL) {  // timeout
+            log(pamh,LOG_EMERG,"ferrum authenticate redis timeout");
+            freeReplyObject(reply);
+            redisFree(context);
+            return NULL;
+        }
+        if (reply->type == REDIS_REPLY_ERROR) {
+            log(pamh,LOG_EMERG,"ferrum redis authenticate error %s", reply->str);
+             freeReplyObject(reply);
+            redisFree(context);
+            return NULL;
+        }
+        freeReplyObject(reply);       
+    
+    }
+
     log(pamh,LOG_DEBUG,"ferrum redis connected to %s#%d",host,port);
     return context;
 }
@@ -160,16 +182,18 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
     const char *client_ip= pam_getenv(pamh,"CLIENT_IP");
     const char *redis_host=pam_getenv(pamh,"REDIS_HOST");
     const char *redis_port=pam_getenv(pamh,"REDIS_PORT");
+    const char *redis_pass=pam_getenv(pamh,"REDIS_PASS");
     const char *tunnel_id=pam_getenv(pamh,"TUNNEL_ID");
     const char *login_url=pam_getenv(pamh,"LOGIN_URL");
     const char *host_id=pam_getenv(pamh,"HOST_ID");
+    
     if(!client_ip || !redis_host || !redis_port || !tunnel_id || !login_url || !host_id){
         log(pamh,LOG_CRIT,"ferrum client ip  or redis host or redis port or tunnel id or login url or host id variable is null");
         return PAM_AUTH_ERR;
     }
     log(pamh,LOG_DEBUG,"ferrum client: %s redis: %s#%s tunnel: %s hostid: %s login_url:%s",client_ip,redis_host,redis_port,tunnel_id,host_id, login_url,host_id);
     log(pamh,LOG_INFO,"ferrum %s is authenticating",client_ip);
-    redisContext *redis=redis_connect(pamh,redis_host,atoi(redis_port));
+    redisContext *redis=redis_connect(pamh,redis_host,atoi(redis_port),redis_pass);
     if(!redis){
         return PAM_AUTH_ERR;
     }
