@@ -65,6 +65,7 @@ typedef struct ferrum {
     struct {
         char host[32];
         int32_t port;
+        char password[128];
         redisContext *context;
     } redis;
 
