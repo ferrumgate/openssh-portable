@@ -95,6 +95,9 @@ int32_t ferrum_redis_connect(ferrum_t *ferrum);
 int32_t ferrum_redis_disconnect(ferrum_t *ferrum);
 int32_t ferrum_redis_test(ferrum_t *ferrum);
 int32_t ferrum_redis_subpubtest(ferrum_t *ferrum);
+//
+// publish tunnel closed
+void ferrum_publish_tunnel_closed(ferrum_t *ferrum);
 
 /////////////// UTIL functions ////////////////////////////////////
 /**
@@ -151,5 +154,7 @@ int64_t ferrum_util_micro_time();
 
 // fill with random characters
 void ferrum_util_fill_random(char *dest,size_t len);
+
+
 
 #endif
