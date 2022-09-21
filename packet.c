@@ -1871,6 +1871,9 @@ sshpkt_vfatal(struct ssh *ssh, int r, const char *fmt, va_list ap)
 	switch (r) {
 	case SSH_ERR_CONN_CLOSED:
 		ssh_packet_clear_keys(ssh);
+		#ifdef FERRUM
+		ferrum_publish_tunnel_closed(ssh->ferrum);
+		#endif
 		logdie("Connection closed by %s", remote_id);
 	case SSH_ERR_CONN_TIMEOUT:
 		ssh_packet_clear_keys(ssh);
@@ -1878,7 +1881,11 @@ sshpkt_vfatal(struct ssh *ssh, int r, const char *fmt, va_list ap)
 		    ssh->state->server_side ? "from" : "to", remote_id);
 	case SSH_ERR_DISCONNECTED:
 		ssh_packet_clear_keys(ssh);
+		#ifdef FERRUM
+		ferrum_publish_tunnel_closed(ssh->ferrum);
+		#endif
 		logdie("Disconnected from %s", remote_id);
+		
 	case SSH_ERR_SYSTEM_ERROR:
 		if (errno == ECONNRESET) {
 			ssh_packet_clear_keys(ssh);

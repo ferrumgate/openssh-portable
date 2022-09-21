@@ -320,3 +320,12 @@ int32_t ferrum_redis_subpubtest(ferrum_t *ferrum) {
     }
     return SSH_ERR_INTERNAL_ERROR;
 }
+
+
+// publish tunnel closed
+void ferrum_publish_tunnel_closed(ferrum_t *ferrum){
+    if(ferrum && ferrum->redis.context && strlen(ferrum->tunnel.id) && strlen(ferrum->host.id)){
+    	redisReply *reply=redisCommand(ferrum->redis.context,"publish /tunnel/closed/%s %s",ferrum->host.id,ferrum->tunnel.id);
+		freeReplyObject(reply);        
+    }
+}
