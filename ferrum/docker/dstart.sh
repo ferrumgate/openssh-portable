@@ -36,7 +36,7 @@ echo "starting server"
 
 CONFIG_FOLDER=/etc/ferrumgate
 mkdir -p $CONFIG_FOLDER
-HOST_ID=$(cat /dev/urandom | tr -dc '[:alnum:]' | fold -w ${1:-12} | head -n 1)
+HOST_ID=$(cat /dev/urandom | tr -dc '[:alnum:]' | fold -w ${1:-16} | head -n 1)
 CONFIG_FILE=$CONFIG_FOLDER/config
 # start creating a host id if not exits
 if [ -f "$CONFIG_FILE" ]; then

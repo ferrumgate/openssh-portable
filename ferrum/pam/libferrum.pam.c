@@ -131,11 +131,11 @@ static int32_t redis_wait_for_authentication(pam_handle_t *pamh,redisContext *re
     // we need to set a redis key like /tunnel/${tunnel_id} with some fields like clientIp   {clientIp:${clientIp}} for live to 5 minutes
 
     // create tunnel object with identifier and clientIp
-    int32_t result= redis_execute(pamh,redis,"hset /tunnel/%s clientIp %s id %s hostId %s",tunnel_id,client_ip,tunnel_id,host_id);
+    int32_t result= redis_execute(pamh,redis,"hset /tunnel/id/%s clientIp %s id %s hostId %s",tunnel_id,client_ip,tunnel_id,host_id);
     if(result)return result;//error
 
     //set 5 minutes ttl, every client will update expire at every minute
-    result= redis_execute(pamh,redis,"pexpire /tunnel/%s 300000",tunnel_id);
+    result= redis_execute(pamh,redis,"pexpire /tunnel/id/%s 300000",tunnel_id);
     if(result)return result;//error
 
 
