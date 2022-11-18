@@ -160,9 +160,9 @@ int32_t ferrum_create(ferrum_t **ferrum) {
     snprintf(tmp->login.url, FERRUM_LOGIN_URL_LEN - 1, "%s",
              login_url ? login_url : "http://localhost/login");
 
-    char *host_id = getenv("HOST_ID");
-    snprintf(tmp->host.id, FERRUM_HOST_ID_LEN - 1, "%s",
-             host_id ? host_id : "000000000000");
+    char *gateway_id = getenv("GATEWAY_ID");
+    snprintf(tmp->gateway.id, FERRUM_GATEWAY_ID_LEN - 1, "%s",
+             gateway_id ? gateway_id : "000000000000");
 
     *ferrum = tmp;
     return FERRUM_SUCCESS;
@@ -324,8 +324,8 @@ int32_t ferrum_redis_subpubtest(ferrum_t *ferrum) {
 
 // publish tunnel closed
 void ferrum_publish_tunnel_closed(ferrum_t *ferrum){
-    if(ferrum && ferrum->redis.context && strlen(ferrum->tunnel.id) && strlen(ferrum->host.id)){
-    	redisReply *reply=redisCommand(ferrum->redis.context,"publish /tunnel/closed/%s %s",ferrum->host.id,ferrum->tunnel.id);
+    if(ferrum && ferrum->redis.context && strlen(ferrum->tunnel.id) && strlen(ferrum->gateway.id)){
+    	redisReply *reply=redisCommand(ferrum->redis.context,"publish /tunnel/closed/%s %s",ferrum->gateway.id,ferrum->tunnel.id);
 		freeReplyObject(reply);        
     }
 }

@@ -131,7 +131,7 @@ static int32_t redis_wait_for_authentication(pam_handle_t *pamh,redisContext *re
     // we need to set a redis key like /tunnel/${tunnel_id} with some fields like clientIp   {clientIp:${clientIp}} for live to 5 minutes
 
     // create tunnel object with identifier and clientIp
-    int32_t result= redis_execute(pamh,redis,"hset /tunnel/id/%s clientIp %s id %s hostId %s",tunnel_id,client_ip,tunnel_id,host_id);
+    int32_t result= redis_execute(pamh,redis,"hset /tunnel/id/%s clientIp %s id %s gatewayId %s",tunnel_id,client_ip,tunnel_id,host_id);
     if(result)return result;//error
 
     //set 5 minutes ttl, every client will update expire at every minute
@@ -185,7 +185,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
     const char *redis_pass=pam_getenv(pamh,"REDIS_PASS");
     const char *tunnel_id=pam_getenv(pamh,"TUNNEL_ID");
     const char *login_url=pam_getenv(pamh,"LOGIN_URL");
-    const char *host_id=pam_getenv(pamh,"HOST_ID");
+    const char *host_id=pam_getenv(pamh,"GATEWAY_ID");
     
     if(!client_ip || !redis_host || !redis_port || !tunnel_id || !login_url || !host_id){
         log(pamh,LOG_CRIT,"ferrum client ip  or redis host or redis port or tunnel id or login url or host id variable is null");
