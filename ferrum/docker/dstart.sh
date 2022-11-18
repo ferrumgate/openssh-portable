@@ -36,21 +36,21 @@ echo "starting server"
 
 CONFIG_FOLDER=/etc/ferrumgate
 mkdir -p $CONFIG_FOLDER
-HOST_ID=$(cat /dev/urandom | tr -dc '[:alnum:]' | fold -w ${1:-16} | head -n 1)
+GATEWAY_ID=$(cat /dev/urandom | tr -dc '[:alnum:]' | fold -w ${1:-16} | head -n 1)
 CONFIG_FILE=$CONFIG_FOLDER/config
 # start creating a host id if not exits
 if [ -f "$CONFIG_FILE" ]; then
     echo "config file $CONFIG_FILE exits"
-    tmp=$(cat "$CONFIG_FILE" | grep "host=" | cut -d '=' -f2 | tr -d " ")
+    tmp=$(cat "$CONFIG_FILE" | grep "gatewayId=" | cut -d '=' -f2 | tr -d " ")
     if [ -z $tmp ]; then
-        echo "host id not found"
-        echo "host=$HOST_ID" >>$CONFIG_FILE
+        echo "gateway id not found"
+        echo "gatewayId=$GATEWAY_ID" >>$CONFIG_FILE
     else
-        HOST_ID=$tmp
+        GATEWAY_ID=$tmp
     fi
 else
     echo "config file does not exits $CONFIG_FILE"
-    echo "host=$HOST_ID" >>$CONFIG_FILE
+    echo "gatewayId=$GATEWAY_ID" >>$CONFIG_FILE
 fi
 
 if [ -f "$CONFIG_FILE" ]; then
@@ -62,7 +62,7 @@ if [ -f "$CONFIG_FILE" ]; then
     fi
 fi
 
-REDIS_HOST=$OPT_REDIS_HOST LOGIN_URL=$OPT_LOGIN_URL HOST_ID=$HOST_ID \
+REDIS_HOST=$OPT_REDIS_HOST LOGIN_URL=$OPT_LOGIN_URL GATEWAY_ID=$GATEWAY_ID \
     /ferrum/sbin/secure.server -D -e -f /ferrum/etc/sshd_config
 
 echo "finished server"

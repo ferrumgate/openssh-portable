@@ -26,7 +26,7 @@
 
 #define FERRUM_IP_STRING_LEN 64
 #define FERRUM_LOGIN_URL_LEN 512
-#define FERRUM_HOST_ID_LEN 32
+#define FERRUM_GATEWAY_ID_LEN 32
 
 /**
  * @brief ferrum sockaddr union for ipv4 and ipv6
@@ -74,8 +74,8 @@ typedef struct ferrum {
     }login;
 
     struct {
-        char id[FERRUM_HOST_ID_LEN];
-    }host;
+        char id[FERRUM_GATEWAY_ID_LEN];
+    }gateway;
 
 } ferrum_t;
 
