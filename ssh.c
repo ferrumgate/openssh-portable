@@ -112,6 +112,9 @@
 #ifdef ENABLE_PKCS11
 #include "ssh-pkcs11.h"
 #endif
+#ifdef FERRUM
+#include <sys/prctl.h>
+#endif
 
 extern char *__progname;
 
@@ -640,6 +643,7 @@ main(int ac, char **av)
 	#ifdef FERRUM
 	atexit(on_ferrum_exit);
 	fprintf(stderr,"ferrum_pid:%d\n",getpid());
+	prctl(PR_SET_PDEATHSIG, SIGKILL);
 	//fflush(stdout);
 	#endif
 
