@@ -1,19 +1,19 @@
 #ifndef __FERRUM_H__
 
 #include <arpa/inet.h>
+#include <errno.h>
 #include <netdb.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/random.h>
-#include <errno.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
-#include <sys/random.h>
+
 #include "../external/libs/include/hiredis/hiredis.h"
 #include "../log.h"
 #include "../ssherr.h"
@@ -25,7 +25,6 @@
 #define ferrum_cast_to_const_void_ptr(a) (const void *)(a)
 
 #define FERRUM_IP_STRING_LEN 64
-#define FERRUM_LOGIN_URL_LEN 512
 #define FERRUM_GATEWAY_ID_LEN 32
 
 /**
@@ -45,7 +44,7 @@ typedef union ferrum_sockaddr {
 typedef struct ferrum {
     // creates a random tunnel id, an alternate to ssh session identifier
     struct {
-        char id[64];
+        char id[65];
     } tunnel;
 
     struct {
@@ -70,12 +69,8 @@ typedef struct ferrum {
     } redis;
 
     struct {
-        char url[FERRUM_LOGIN_URL_LEN];
-    }login;
-
-    struct {
         char id[FERRUM_GATEWAY_ID_LEN];
-    }gateway;
+    } gateway;
 
 } ferrum_t;
 
@@ -153,8 +148,6 @@ int32_t ferrum_util_addr_to_ferrum_addr(const struct sockaddr *addr,
 int64_t ferrum_util_micro_time();
 
 // fill with random characters
-void ferrum_util_fill_random(char *dest,size_t len);
-
-
+void ferrum_util_fill_random(char *dest, size_t len);
 
 #endif

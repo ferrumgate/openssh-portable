@@ -184,14 +184,13 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
     const char *redis_port=pam_getenv(pamh,"REDIS_PORT");
     const char *redis_pass=pam_getenv(pamh,"REDIS_PASS");
     const char *tunnel_id=pam_getenv(pamh,"TUNNEL_ID");
-    const char *login_url=pam_getenv(pamh,"LOGIN_URL");
     const char *host_id=pam_getenv(pamh,"GATEWAY_ID");
     
-    if(!client_ip || !redis_host || !redis_port || !tunnel_id || !login_url || !host_id){
-        log(pamh,LOG_CRIT,"ferrum client ip  or redis host or redis port or tunnel id or login url or host id variable is null");
+    if(!client_ip || !redis_host || !redis_port || !tunnel_id  || !host_id){
+        log(pamh,LOG_CRIT,"ferrum client ip  or redis host or redis port or tunnel id or  host id variable is null");
         return PAM_AUTH_ERR;
     }
-    log(pamh,LOG_DEBUG,"ferrum client: %s redis: %s#%s tunnel: %s hostid: %s login_url:%s",client_ip,redis_host,redis_port,tunnel_id,host_id, login_url,host_id);
+    log(pamh,LOG_DEBUG,"ferrum client: %s redis: %s#%s tunnel: %s hostid: %s",client_ip,redis_host,redis_port,tunnel_id,host_id,host_id);
     log(pamh,LOG_INFO,"ferrum %s is authenticating",client_ip);
     redisContext *redis=redis_connect(pamh,redis_host,atoi(redis_port),redis_pass);
     if(!redis){
@@ -209,9 +208,8 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc,
         pam_get_item(pamh, PAM_USER, (const void **)ptr_pam_user);
 
     if (!sshpam_err) {
-        #define FERRUM_LOGIN_URL_LEN 512
-        char ferrumlink[FERRUM_LOGIN_URL_LEN];
-        snprintf(ferrumlink,FERRUM_LOGIN_URL_LEN-1, "ferrum_open:%s?tunnel=%s",login_url,tunnel_id);
+        char ferrumlink[512];
+        snprintf(ferrumlink,512-1, "ferrum_open:tunnel=%s",tunnel_id);
         log(pamh, LOG_DEBUG, "ferrum user %s ", pam_user);
         PAM_CONST struct pam_message msg = {
             .msg_style = PAM_PROMPT_ECHO_ON,

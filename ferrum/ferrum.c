@@ -156,9 +156,6 @@ int32_t ferrum_create(ferrum_t **ferrum) {
         strncpy(tmp->redis.password,redis_pass,sizeof(tmp->redis.password)-1);
      }
 
-    char *login_url = getenv("LOGIN_URL");
-    snprintf(tmp->login.url, FERRUM_LOGIN_URL_LEN - 1, "%s",
-             login_url ? login_url : "http://localhost/login");
 
     char *gateway_id = getenv("GATEWAY_ID");
     snprintf(tmp->gateway.id, FERRUM_GATEWAY_ID_LEN - 1, "%s",

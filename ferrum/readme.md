@@ -1,7 +1,7 @@
 # getting started
+
 This is a fork of openssh server to create a secure tunnel between users, devices etc..
 This version implements new authentication protocols like oauth2,SSO, active directory etc...
-
 
 ## prepare
 
@@ -14,10 +14,13 @@ sudo apt install libpam0g-dev
 ```
 
 ### openssl static compile
+
 ./config -static --static --prefix=$(pwd)/../opensslbuild
 
 ## doc
+
 you can open documents under doc folder with [app.diagrams.net](https://app.diagrams.net)
+
 ## compile
 
 ```bash
@@ -43,24 +46,25 @@ FERRUM_DEBUG flags is for support SSH with none cipher
 edit ./build/etc/sshd_config and replace port to 3333
 > sudo $(pwd)/build/sbin/sshd -D  -f $(pwd)/build/etc/sshd_config
 
-for log 
+for log
 > tail -f /var/log/auth.log
 
 for client  connection
 > ssh user@localhost -p3333
 
-
 ## ssh server run
-> REDIS_HOST=192.168.88.10 GATEWAY_ID=123456789ABC LOGIN_URL=http://localhost:4200/login $(pwd)/sshd -D  -f ../etc/sshd_config
+
+> REDIS_HOST=192.168.88.10 GATEWAY_ID=123456789ABC  $(pwd)/sshd -D  -f ../etc/sshd_config
 
 ## ssh client run
-> ./ssh -c none -N -F ../etc/ssh_config -w any  sshd@192.168.88.243 -p3333
-## sample sshd_config
 
+> ./ssh -c none -N -F ../etc/ssh_config -w any  sshd@192.168.88.243 -p3333
+
+## sample sshd_config
 
 ```html
 
-#	$OpenBSD: sshd_config,v 1.104 2021/07/02 05:11:21 dtucker Exp $
+# $OpenBSD: sshd_config,v 1.104 2021/07/02 05:11:21 dtucker Exp $
 
 # This is the sshd server system-wide configuration file.  See
 # sshd_config(5) for more information.
@@ -100,7 +104,7 @@ PermitRootLogin yes
 
 # The default is to check both .ssh/authorized_keys and .ssh/authorized_keys2
 # but this is overridden so installations will only check .ssh/authorized_keys
-AuthorizedKeysFile	.ssh/authorized_keys
+AuthorizedKeysFile .ssh/authorized_keys
 #UsePrivilegeSeparation yes
 #AuthorizedPrincipalsFile none
 
@@ -170,14 +174,14 @@ PermitTunnel yes
 #Banner none
 
 # override default of no subsystems
-#Subsystem	sftp	/work/projects/ferrum/secure.server/build/libexec/sftp-server
+#Subsystem sftp /work/projects/ferrum/secure.server/build/libexec/sftp-server
 
 # Example of overriding settings on a per-user basis
 #Match User anoncvs
-#	X11Forwarding no
-#	AllowTcpForwarding no
-#	PermitTTY no
-#	ForceCommand cvs server
+# X11Forwarding no
+# AllowTcpForwarding no
+# PermitTTY no
+# ForceCommand cvs server
 ### disables remote and local forwardings 
 DisableForwarding yes
 
