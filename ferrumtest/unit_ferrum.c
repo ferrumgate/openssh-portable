@@ -35,7 +35,7 @@ static void test_ferrum_generate_tunnel_id(void **start)
     result=ferrum_generate_tunnel_id(fer);
     assert_int_equal(result,FERRUM_SUCCESS);
     printf("%s %zu\n",fer->tunnel.id,strlen(fer->tunnel.id));
-    assert_true(strlen(fer->tunnel.id)==63);
+    assert_true(strlen(fer->tunnel.id)==64);
     unused(start);
     ferrum_destroy(fer);
 }
