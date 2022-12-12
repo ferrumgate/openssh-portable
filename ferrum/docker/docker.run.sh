@@ -6,4 +6,4 @@ docker run --net=host \
     --cap-add=NET_ADMIN \
     -v /dev/net/tun:/dev/net/tun \
     -v /tmp/ferrumgate:/etc/ferrumgate \
-    secure.server
+    secure.server.ssh

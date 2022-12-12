@@ -14,7 +14,7 @@ version=$(cat ./ferrum/ferrum.h | grep FERRUM_SECURE_SERVER_VERSION | cut -d' ' 
 
 # if not set
 if [ -z $IMAGE_NAME ]; then
-    IMAGE_NAME=secure.server
+    IMAGE_NAME=secure.server.ssh
 fi
 
 echo $IMAGE_NAME is building
