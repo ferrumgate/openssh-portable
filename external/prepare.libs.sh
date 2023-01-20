@@ -18,14 +18,21 @@ cp openssl-1.1.1o.tar.gz $TMPFOLDER
 cd $TMPFOLDER
 tar zxvf openssl-1.1.1o.tar.gz 
 cd openssl-1.1.1o
+if [[ "$OSTYPE" == "darwin"* ]]; then
+./config  --prefix=$DESTFOLDER
+else 
 ./config -static --static --prefix=$DESTFOLDER
+fi
 make
 make install
+if [[ "$OSTYPE" == "darwin"* ]]; then
+rm $DESTFOLDER/lib/*.dylib
+fi
 
 
 
-
-######## install cmocka ############
+if [[ ! "$OSTYPE" == "darwin"* ]]; then
+####### install cmocka ############
 cd $CURRENTFOLDER
 cp cmocka-1.1.5.tar.xz $TMPFOLDER
 cd $TMPFOLDER
@@ -37,6 +44,7 @@ cd build
 cmake -DCMAKE_INSTALL_PREFIX=$DESTFOLDER -DCMAKE_BUILD_TYPE=Debug ../
 make
 make install
+fi
 
 
 ######### install hiredis ############
@@ -48,3 +56,6 @@ cd hiredis-1.0.2
 export PREFIX=$DESTFOLDER
 make
 make install
+if [[ "$OSTYPE" == "darwin"* ]]; then
+rm $DESTFOLDER/lib/*.dylib
+fi

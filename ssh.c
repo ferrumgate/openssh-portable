@@ -113,7 +113,9 @@
 #include "ssh-pkcs11.h"
 #endif
 #ifdef FERRUM
-#include <sys/prctl.h>
+ 	#ifndef __APPLE__
+	#include <sys/prctl.h>
+	#endif
 #endif
 
 extern char *__progname;
@@ -643,7 +645,9 @@ main(int ac, char **av)
 	#ifdef FERRUM
 	atexit(on_ferrum_exit);
 	fprintf(stderr,"ferrum_pid:%d\n",getpid());
+	#ifndef __APPLE__
 	prctl(PR_SET_PDEATHSIG, SIGKILL);
+	#endif
 	//fflush(stdout);
 	#endif
 
