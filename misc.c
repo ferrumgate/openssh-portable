@@ -1391,6 +1391,7 @@ tun_open(int tun, int mode, char **ifname)
 #if defined(CUSTOM_SYS_TUN_OPEN)
 	return (sys_tun_open(tun, mode, ifname));
 #elif defined(SSH_TUN_OPENBSD)
+
 	struct ifreq ifr;
 	char name[100];
 	int fd = -1, sock;

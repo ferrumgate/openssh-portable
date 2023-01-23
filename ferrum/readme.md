@@ -188,7 +188,10 @@ DisableForwarding yes
 ```
 
 ### macos
-
+install brew
+brew install autoconf
+brew install automake
+brew install libtool
 aclocal
 autoconf
 autoreconf
