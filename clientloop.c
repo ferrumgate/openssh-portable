@@ -1302,7 +1302,9 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 	}
 
 	schedule_server_alive_check();
-
+	#if defined(__APPLE__) && defined(FERRUM)
+	int64_t parent_process_check=0;
+	#endif
 	/* Main loop of the client for the interactive session mode. */
 	while (!quit_pending) {
 
@@ -1385,6 +1387,15 @@ client_loop(struct ssh *ssh, int have_pty, int escape_char_arg,
 				break;
 			}
 		}
+		#if defined(__APPLE__) && defined(FERRUM)
+		// macos does not inform if parent died
+		if(parent_process_check++%99==0){
+			if(getppid()==1){
+				debug("parent process died already");
+				break;
+			}
+		}
+		#endif
 	}
 	free(pfd);
 
