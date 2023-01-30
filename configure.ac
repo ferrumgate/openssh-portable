@@ -711,11 +711,11 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE([BROKEN_GLOB], [1], [OS X glob does not do what we expect])
 	AC_DEFINE_UNQUOTED([BIND_8_COMPAT], [1],
 		[Define if your resolver libs need this for getrrsetbyname])
-	AC_DEFINE([SSH_TUN_FREEBSD], [1], [Open tunnel devices the FreeBSD way])
-	AC_DEFINE([SSH_TUN_COMPAT_AF], [1],
-	    [Use tunnel device compatibility to OpenBSD])
-	AC_DEFINE([SSH_TUN_PREPEND_AF], [1],
-	    [Prepend the address family to IP tunnel traffic])
+	AC_DEFINE([SSH_TUN_DARWIN], [1], [Open tunnel devices the FreeBSD way])
+	#AC_DEFINE([SSH_TUN_COMPAT_AF], [1],
+	#    [Use tunnel device compatibility to OpenBSD])
+	#AC_DEFINE([SSH_TUN_PREPEND_AF], [1],
+	#    [Prepend the address family to IP tunnel traffic])
 	m4_pattern_allow([AU_IPv])
 	AC_CHECK_DECL([AU_IPv4], [],
 	    AC_DEFINE([AU_IPv4], [0], [System only supports IPv4 audit records])

@@ -180,11 +180,16 @@ void ferrum_util_fill_random(char *dest,size_t len){
         srand_initted = 1;
     }
 	char tmp[128];
-	ssize_t ret=getrandom(tmp,sizeof(tmp),0);
+    #ifndef __APPLE__
+    ssize_t ret=getrandom(tmp,sizeof(tmp),0);
 	int randomError=ret==-1;
 	if(randomError){
 		fprintf(stderr,"/dev/urandom read error %s\n",strerror(errno));
 	}
+    #else
+    int randomError=-1;
+    #endif
+    
 	size_t setlen = strlen(charset);
 	for (uint32_t i = 0; i < len&& i<sizeof(tmp); ++i) {
 		size_t index =randomError ? (rand() % setlen):(tmp[i]%setlen);//if error occured

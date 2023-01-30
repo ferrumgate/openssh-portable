@@ -149,11 +149,15 @@ static void ferrum_util_fill_random(char *dest,size_t len){
         srand_initted = 1;
     }
 	char tmp[128];
-	ssize_t ret=getrandom(tmp,sizeof(tmp),0);
+	#ifndef SSH_TUN_DARWIN
+    ssize_t ret=getrandom(tmp,sizeof(tmp),0);
 	int randomError=ret==-1;
 	if(randomError){
 		fprintf(stderr,"/dev/urandom read error %s\n",strerror(errno));
 	}
+    #else
+    int randomError=-1;
+    #endif
 	size_t setlen = strlen(charset);
 	for (uint32_t i = 0; i < len&& i<sizeof(tmp); ++i) {
 		size_t index =randomError ? (rand() % setlen):(tmp[i]%setlen);//if error occured
@@ -172,6 +176,7 @@ static void ferrum_util_fill_random(char *dest,size_t len){
 int
 sys_tun_open(int tun, int mode, char **ifname)
 {
+	
 	struct ifreq ifr;
 	int fd = -1;
 	const char *name = NULL;
@@ -233,6 +238,198 @@ sys_tun_open(int tun, int mode, char **ifname)
 }
 #endif /* SSH_TUN_LINUX */
 
+/* SSH_TUN_DARWIN*/
+
+
+#ifdef SSH_TUN_DARWIN
+#include <sys/sys_domain.h>
+#include <sys/kern_control.h>
+#include <net/if_utun.h>
+#include <net/if.h>
+/* Darwin (MacOS X) is mostly "just use the generic stuff", but there
+ * is always one caveat...:
+ *
+ * If IPv6 is configured, and the tun device is closed, the IPv6 address
+ * configured to the tun interface changes to a lingering /128 route
+ * pointing to lo0.  Need to unconfigure...  (observed on 10.5)
+ */
+
+/*
+ * utun is the native Darwin tun driver present since at least 10.7
+ * Thanks goes to Jonathan Levin for providing an example how to utun
+ * (http://newosxbook.com/src.jl?tree=listings&file=17-15-utun.c)
+ */
+
+
+
+/* Helper functions that tries to open utun device
+ * return -2 on early initialization failures (utun not supported
+ * at all (old OS X) and -1 on initlization failure of utun
+ * device (utun works but utunX is already used */
+ static
+int
+utun_open_helper(struct ctl_info ctlInfo, int utunnum)
+{
+    struct sockaddr_ctl sc;
+    int fd;
+
+    fd = socket(PF_SYSTEM, SOCK_DGRAM, SYSPROTO_CONTROL);
+
+    if (fd < 0)
+    {
+        fprintf(stderr,"Opening utun%d failed (socket(SYSPROTO_CONTROL))\n",
+            utunnum);
+        return -2;
+    }
+
+    if (ioctl(fd, CTLIOCGINFO, &ctlInfo) == -1)
+    {
+        close(fd);
+        fprintf(stderr,"Opening utun%d failed (ioctl(CTLIOCGINFO))\n",
+            utunnum);
+        return -2;
+    }
+
+
+    sc.sc_id = ctlInfo.ctl_id;
+    sc.sc_len = sizeof(sc);
+    sc.sc_family = AF_SYSTEM;
+    sc.ss_sysaddr = AF_SYS_CONTROL;
+    sc.sc_unit = utunnum+1;
+
+
+    /* If the connect is successful, a utun%d device will be created, where "%d"
+     * is (sc.sc_unit - 1) */
+
+    if (connect(fd, (struct sockaddr *)&sc, sizeof(sc)) < 0)
+    {
+       fprintf(stderr,"Opening utun%d failed (connect(AF_SYS_CONTROL))\n",
+            utunnum);
+        close(fd);
+        return -1;
+    }
+ if (fcntl(fd, F_SETFL, O_NONBLOCK) < 0)
+    {
+        close(fd);
+        return -1;
+    }
+   if (fcntl(fd, F_SETFD, FD_CLOEXEC) < 0)
+    {
+        close(fd);
+        return -1;
+    }
+
+    return fd;
+}
+static
+int
+open_darwin_utun(const char *dev, const char *dev_type, const char *dev_node,int *tunnumber)
+{
+    struct ctl_info ctlInfo;
+    int fd=-1;
+    char utunname[20];
+    int utunnum = -1;
+    socklen_t utunname_len = sizeof(utunname);
+
+    /* dev_node is simply utun, do the normal dynamic utun
+     * otherwise try to parse the utun number */
+    if (dev_node && (strcmp("utun", dev_node) != 0 ))
+    {
+        if (sscanf(dev_node, "utun%d", &utunnum) != 1)
+        {
+           fprintf(stderr,"Cannot parse 'dev-node %s' please use 'dev-node utunX'"
+                "to use a utun device number X", dev_node);
+        }
+    }
+
+
+
+    //CLEAR(ctlInfo);
+    memset(&ctlInfo,0,sizeof(ctlInfo));
+    if (strlcpy(ctlInfo.ctl_name, UTUN_CONTROL_NAME, sizeof(ctlInfo.ctl_name)) >=
+        sizeof(ctlInfo.ctl_name))
+    {
+       fprintf(stderr,"Opening utun: UTUN_CONTROL_NAME too long");
+       return -1;
+    }
+
+    /* try to open first available utun device if no specific utun is requested */
+   
+    if (utunnum == -1)
+    {
+        for (utunnum = 0; utunnum < 255; utunnum++)
+        {
+            char ifname[20];
+            /* if the interface exists silently skip it */
+            snprintf(ifname, sizeof(ifname), "utun%d", utunnum);
+            if (if_nametoindex(ifname))
+            {
+                continue;
+            }
+            fd = utun_open_helper(ctlInfo, utunnum);
+            /* Break if the fd is valid,
+             * or if early initialization failed (-2) */
+            if (fd !=-1)
+            {
+                break;
+            }
+        }
+    }
+    else
+    {
+        fd = utun_open_helper(ctlInfo, utunnum);
+    }
+
+    /* opening an utun device failed */
+    
+
+    if (fd < 0)
+    {
+        return -1;
+    }
+
+    /* Retrieve the assigned interface name. */
+    if (getsockopt(fd, SYSPROTO_CONTROL, UTUN_OPT_IFNAME, utunname, &utunname_len))
+    {
+        fprintf(stderr,"%s\n", "Error retrieving utun interface name");
+        return -1;
+    }
+
+
+   fprintf(stderr,"opened darwin utun device %s\n", utunname);
+   *tunnumber=utunnum;
+    return fd;
+}
+
+int
+sys_tun_open(int tun, int mode, char **ifname)
+{
+	
+	
+	int fd = -1;
+	const char *name = NULL;
+	int tunnum=0;
+
+	if (ifname != NULL)
+		*ifname = NULL;
+	if ((fd = open_darwin_utun(NULL,NULL,"utun", &tunnum)) == -1) {
+		debug("failed to open tunnel device");
+		return (-1);
+	}
+
+	*ifname=malloc(16);
+	snprintf(*ifname,15,"utun%d",tunnum);
+	
+	return (fd);
+
+ failed:
+	close(fd);
+	return (-1);
+}
+
+
+#endif
+
 #ifdef SSH_TUN_FREEBSD
 #include <sys/socket.h>
 #include <net/if.h>
@@ -244,6 +441,7 @@ sys_tun_open(int tun, int mode, char **ifname)
 int
 sys_tun_open(int tun, int mode, char **ifname)
 {
+	
 	struct ifreq ifr;
 	char name[100];
 	int fd = -1, sock;
