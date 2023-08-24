@@ -18,7 +18,7 @@
 #include "../log.h"
 #include "../ssherr.h"
 
-#define FERRUM_SECURE_SERVER_VERSION "1.0.0"
+#define FERRUM_SECURE_SERVER_VERSION "1.1.0"
 #define FERRUM_SUCCESS 0
 
 #define ferrum_fill_zero(a, b) memset(a, 0, b)

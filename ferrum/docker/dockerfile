@@ -28,7 +28,7 @@ RUN ./configure --prefix=$(pwd)/build \
 RUN make clean && make && make install-nokeys
 RUN cp build/sbin/sshd build/sbin/secure.server
 WORKDIR /ferrum/ferrum/pam
-RUN make clean && make all
+RUN make clean -f Makefile2 && make all -f Makefile2
 
 ##### part 2    ###################################
 ################ for testing  #######################

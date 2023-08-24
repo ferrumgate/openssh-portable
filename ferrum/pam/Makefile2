@@ -1,0 +1,21 @@
+CFLAGS = -W -O0 -g -ggdb -std=gnu17 -fPIC -fno-stack-protector -I/usr/local/include -I../../external/libs/include
+CFLAGSPROD =  -W -O3 -g -ggdb -std=gnu17  -fPIC -fno-stack-protector
+LDFLAGS = -L/usr/local/lib -L../../external/libs/lib  -l:libhiredis.a
+
+OUTPUT=pam_ferrum.so
+OBJS=libferrum.pam.o
+
+$(OBJS): libferrum.pam.c
+	$(CC) -o $(OBJS) $(CFLAGS) -c libferrum.pam.c
+
+$(OUTPUT): $(OBJS)
+	$(LD) -x -shared -o $(OUTPUT) $(OBJS) $(LDFLAGS)
+
+all: $(OUTPUT)
+
+clean:
+	rm -rf pam_ferrum.so
+	rm -rf libferrum.pam.o
+
+install:
+	cp pam_ferrum.so /usr/lib/x86_64-linux-gnu/security/

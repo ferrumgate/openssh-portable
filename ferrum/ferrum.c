@@ -64,13 +64,13 @@ int32_t ferrum_util_resolve(const char *name, ferrum_sockaddr_t *addr,
     size_t addrlist_len;
     ferrum_fill_zero(addr, sizeof(ferrum_sockaddr_t));
     char *cloned = strdup(name);
-    char *ptr = strtok(cloned, "#");
+    char *ptr = strtok(cloned, "#:");
     int32_t port = 0;
     int32_t counter = 0;
     // extra safe
     if (!ptr) {
         ptr = "localhost";
-        ptr = strtok(ptr, "#");
+        ptr = strtok(ptr, "#:");
     }
     while (ptr) {
         counter++;
@@ -104,7 +104,7 @@ int32_t ferrum_util_resolve(const char *name, ferrum_sockaddr_t *addr,
             }
         }
 
-        ptr = strtok(NULL, "#");
+        ptr = strtok(NULL, "#:");
     }
     if (!port) {
         if (addr->base.sa_family == AF_INET) {
@@ -136,7 +136,7 @@ int32_t ferrum_create(ferrum_t **ferrum) {
     if (current_time - last_redis_resolve_time >
         1 * 60 * 1000 * 1000) {  // every 1 minute only resolve again
         char *redis_env = getenv("REDIS_HOST");
-        redis_env = redis_env ? redis_env : "localhost#6379";
+        redis_env = redis_env ? redis_env : "localhost:6379";
         ferrum_sockaddr_t addr;
         int32_t result = ferrum_util_resolve(redis_env, &addr, 6379);
         if (result) {
